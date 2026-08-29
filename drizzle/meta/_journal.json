@@ -8,6 +8,13 @@
       "when": 1787987954396,
       "tag": "0000_bumpy_eternity",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788016722214,
+      "tag": "0001_cool_azazel",
+      "breakpoints": true
     }
   ]
 }

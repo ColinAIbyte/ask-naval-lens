@@ -1,0 +1,8 @@
+[
+  { "id": "entrepreneurship", "topic": "entrepreneurship", "question": "I've been building a side project for eight months. It has 40 users and no revenue. I enjoy building it, but I'm not sure whether continuing is persistence or denial. How should I think about it?" },
+  { "id": "career", "topic": "career", "question": "I've worked at a stable company for five years, but I increasingly want to build my own product. I have a year of runway and a few potential customers, but I'm worried about quitting into a weak economy. How should I think about the decision?" },
+  { "id": "happiness", "topic": "happiness", "question": "I got the promotion I spent years chasing, but I feel more anxious than before. Every achievement seems to create another target. Why doesn't success feel the way I expected?" },
+  { "id": "wealth", "topic": "wealth", "question": "I make a good salary but almost all of my income still depends on my time. I want more freedom, but I don't know whether to invest, start a business, or build an audience." },
+  { "id": "decisions", "topic": "decision_making", "question": "I have two opportunities: one is safe, prestigious and well-paid; the other pays less but lets me work with people I deeply respect on something I care about. How should I compare them?" },
+  { "id": "ambition", "topic": "other", "question": "I constantly compare myself with people who are more successful than me. It motivates me, but it also makes me unhappy. How should I think about ambition without becoming trapped by it?" }
+]

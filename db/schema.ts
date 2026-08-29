@@ -1,7 +1,7 @@
 import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 export const analyses = sqliteTable('analyses', {
-  id: text('id').primaryKey(), subjectId: text('subject_id').notNull(), userId: text('user_id'), locale: text('locale').notNull(), topic: text('topic').notNull(), question: text('question').notNull(), resultJson: text('result_json').notNull(), mode: text('mode').notNull(), modelName: text('model_name'), promptVersion: text('prompt_version').notNull(), createdAt: text('created_at').notNull(),
+  id: text('id').primaryKey(), subjectId: text('subject_id').notNull(), userId: text('user_id'), locale: text('locale').notNull(), topic: text('topic').notNull(), question: text('question').notNull(), resultJson: text('result_json').notNull(), mode: text('mode').notNull(), modelName: text('model_name'), promptVersion: text('prompt_version').notNull(), latencyMs: integer('latency_ms'), inputTokens: integer('input_tokens'), outputTokens: integer('output_tokens'), totalTokens: integer('total_tokens'), retryCount: integer('retry_count').notNull().default(0), createdAt: text('created_at').notNull(),
 }, (table) => [index('idx_analyses_subject_created').on(table.subjectId, table.createdAt)]);
 
 export const dailyUsage = sqliteTable('daily_usage', {
@@ -27,3 +27,11 @@ export const analyticsEvents = sqliteTable('analytics_events', {
 export const paymentEvents = sqliteTable('payment_events', {
   providerEventId: text('provider_event_id').primaryKey(), userId: text('user_id').notNull(), amountTotal: integer('amount_total'), currency: text('currency'), credits: integer('credits').notNull(), createdAt: text('created_at').notNull(),
 });
+
+export const aiRequests = sqliteTable('ai_requests', {
+  id: text('id').primaryKey(), subjectId: text('subject_id'), modelName: text('model_name').notNull(), latencyMs: integer('latency_ms').notNull(), inputTokens: integer('input_tokens'), outputTokens: integer('output_tokens'), totalTokens: integer('total_tokens'), success: integer('success', { mode: 'boolean' }).notNull(), retryCount: integer('retry_count').notNull().default(0), errorCode: text('error_code'), createdAt: text('created_at').notNull(),
+}, (table) => [index('idx_ai_requests_created').on(table.createdAt)]);
+
+export const rateLimits = sqliteTable('rate_limits', {
+  scope: text('scope').notNull(), identifierHash: text('identifier_hash').notNull(), windowStart: text('window_start').notNull(), count: integer('count').notNull().default(0),
+}, (table) => [primaryKey({ columns: [table.scope, table.identifierHash, table.windowStart] })]);

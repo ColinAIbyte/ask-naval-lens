@@ -22,6 +22,11 @@ export async function ensureDatabase(): Promise<void> {
       mode TEXT NOT NULL CHECK (mode IN ('live', 'demo')),
       model_name TEXT,
       prompt_version TEXT NOT NULL,
+      latency_ms INTEGER,
+      input_tokens INTEGER,
+      output_tokens INTEGER,
+      total_tokens INTEGER,
+      retry_count INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL
     )`,
     `CREATE INDEX IF NOT EXISTS idx_analyses_subject_created
@@ -70,6 +75,28 @@ export async function ensureDatabase(): Promise<void> {
       currency TEXT,
       credits INTEGER NOT NULL,
       created_at TEXT NOT NULL
+    )`,
+    `CREATE TABLE IF NOT EXISTS ai_requests (
+      id TEXT PRIMARY KEY,
+      subject_id TEXT,
+      model_name TEXT NOT NULL,
+      latency_ms INTEGER NOT NULL,
+      input_tokens INTEGER,
+      output_tokens INTEGER,
+      total_tokens INTEGER,
+      success INTEGER NOT NULL CHECK (success IN (0, 1)),
+      retry_count INTEGER NOT NULL DEFAULT 0,
+      error_code TEXT,
+      created_at TEXT NOT NULL
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_ai_requests_created
+      ON ai_requests(created_at)`,
+    `CREATE TABLE IF NOT EXISTS rate_limits (
+      scope TEXT NOT NULL,
+      identifier_hash TEXT NOT NULL,
+      window_start TEXT NOT NULL,
+      count INTEGER NOT NULL DEFAULT 0 CHECK (count >= 0),
+      PRIMARY KEY(scope, identifier_hash, window_start)
     )`,
   ];
   await db.batch(statements.map((statement) => db.prepare(statement)));
