@@ -61,15 +61,17 @@ export async function createAnalysis(input: { question: string; topic: Topic; lo
   const text = payload.output_text ?? payload.output?.flatMap((item) => item.content ?? []).find((item) => item.type === 'output_text')?.text;
   if (!text) throw new Error('AI provider returned no structured output');
   const parsed = JSON.parse(text) as GeneratedAnalysis;
-  validateGenerated(parsed, selectedSources);
-  return { analysis: attachSources(parsed, selectedSources), mode: 'live', model, promptVersion };
+  const normalized = normalizeGenerated(parsed, selectedSources);
+  return { analysis: attachSources(normalized, selectedSources), mode: 'live', model, promptVersion };
 }
 
-function validateGenerated(value: GeneratedAnalysis, sources: ApprovedSource[]) {
+function normalizeGenerated(value: GeneratedAnalysis, sources: ApprovedSource[]): GeneratedAnalysis {
   const allowed = new Set(sources.map((source) => source.id));
   if (!value || value.actions?.length !== 3 || value.frameworks?.length < 1 || value.frameworks.length > 3) throw new Error('Invalid analysis structure');
-  const cited = [...value.sourceIds, ...value.frameworks.flatMap((item) => item.sourceIds)];
-  if (cited.length === 0 || cited.some((id) => !allowed.has(id))) throw new Error('Invalid source citation');
+  const frameworks = value.frameworks
+    .map((framework) => ({ ...framework, sourceIds: framework.sourceIds.filter((id) => allowed.has(id)) }))
+    .filter((framework) => framework.sourceIds.length > 0);
+  return { ...value, frameworks, sourceIds: value.sourceIds.filter((id) => allowed.has(id)) };
 }
 
 function attachSources(value: GeneratedAnalysis, sources: ApprovedSource[]): PublicAnalysis {

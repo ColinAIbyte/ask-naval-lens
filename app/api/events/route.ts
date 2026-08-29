@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { database, ensureDatabase } from '@/lib/database';
 
-const allowedEvents = new Set(['landing_viewed', 'language_changed', 'example_selected', 'analysis_submitted', 'analysis_completed', 'analysis_failed', 'paywall_viewed', 'checkout_started', 'feedback_submitted', 'source_clicked']);
+const allowedEvents = new Set(['landing_viewed', 'language_changed', 'example_selected', 'analysis_submitted', 'analysis_completed', 'analysis_failed', 'paywall_viewed', 'checkout_started', 'feedback_submitted', 'source_clicked', 'contact_clicked', 'share_clicked']);
 
 export async function POST(request: NextRequest) {
   let body: { event?: unknown; properties?: unknown };

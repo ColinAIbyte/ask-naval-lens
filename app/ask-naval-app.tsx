@@ -16,10 +16,11 @@ type Analysis = {
 };
 
 const topicKeys: Topic[] = ['wealth', 'entrepreneurship', 'life', 'happiness', 'decision_making'];
+const contactEmail = 'fancifulman2008@gmail.com';
 
 const copy = {
   zh: {
-    navHow: '如何工作', navPricing: '价格', signIn: '登录', eyebrow: '清晰，源于更好的思考框架',
+    navHow: '如何工作', navPricing: '价格', signIn: '登录', contact: '合作联系', eyebrow: '清晰，源于更好的思考框架',
     titleA: '换一个视角，', titleB: '看清你的问题。', subtitle: '借助 Naval Ravikant 公开分享的思想框架，获得有出处、可行动的独立分析。',
     label: '你现在想理清什么？', placeholder: '例如：我应该辞职，全职做自己的产品吗？', topics: ['财富', '创业', '人生', '幸福', '决策'],
     cta: '分析我的问题', analyzing: '正在梳理思想框架…', free: '今天可免费分析 1 次', credits: (n: number) => `剩余 ${n} 次付费分析`,
@@ -28,18 +29,22 @@ const copy = {
     quote: '不是替你做决定，而是帮你把决定看得更清楚。', disclaimer: '独立分析工具，与 Naval Ravikant 本人无官方关联。',
     shortQuestion: '请至少输入 10 个字符，让问题更具体一些。', genericError: '暂时无法完成分析，请稍后重试。',
     demoNotice: '演示模式：当前回答由审核过的公开来源与固定框架生成；配置 AI 密钥后将启用个性化模型分析。',
-    perspective: '01 · 视角分析', frameworks: '02 · 对应思想框架', applies: '03 · 为什么适用于你', actions: '04 · 三个行动建议', sources: '05 · 相关公开出处',
-    sourceType: '公开来源', helpful: '有帮助', notHelpful: '没帮助', another: '再问一个问题',
+    perspective: '视角分析', frameworks: '对应思想框架', applies: '为什么适用于你', actions: '三个行动建议', sources: '相关公开出处',
+    questionLabel: '你的问题', sourceArticle: '文章', sourceTranscript: '公开文字稿', verifiedSource: '已审核', noSources: '没有找到足够的已审核公开出处来支撑额外的思想框架，因此本次分析刻意保持克制。',
+    helpful: '有帮助', notHelpful: '没帮助', another: '再问一个问题',
     pricingEyebrow: '简单、透明的早期价格', pricingTitle: '先免费体验，再决定是否继续。', pricingBody: '每天一次完整免费分析。需要更多时，再购买按次额度，不自动续费。',
     plan: 'Starter Pack', price: '$9', priceNote: '一次性付款 · 30 次分析 · 12 个月有效', buy: '购买 30 次',
     paywallTitle: '今天的免费分析已用完', paywallBody: '购买 30 次分析，继续从经过审核的公开思想框架中获得清晰、可行动的第二视角。',
     close: '暂时不用', paymentUnavailable: '支付服务尚未配置。页面与流程已经就绪，配置支付密钥后即可开放购买。',
     howEyebrow: '不是泛泛聊天', howTitle: '从真实问题，到可验证的下一步。',
-    howSteps: [['提出问题', '写下你正在面对的真实选择或困惑。'], ['匹配框架', '系统只从审核过的 Naval 公开内容中寻找相关思想。'], ['开始行动', '获得适用原因、三个行动建议和可核验出处。']],
+    howSteps: [['提出问题', '写下你正在面对的真实选择或困惑。'], ['匹配框架', '系统只从审核过的 Naval 公开内容中寻找相关思想，出处链接不由模型生成。'], ['开始行动', '获得适用原因、三个行动建议和可核验出处。']],
     footerPrivacy: '隐私', footerTerms: '条款', footerDisclaimer: '免责声明', useful: '这份分析有帮助吗？', matching: '正在匹配最相关的公开思想与出处。',
+    directContact: '直接联系我', contactEyebrow: '一起把想法变成产品', contactTitle: '合作、建议，或者只是想聊聊？',
+    contactBody: '如果你对 AI 产品、独立开发、内容合作或 Ask Naval 有任何想法，欢迎直接发邮件。我会认真阅读每一封来信。',
+    contactCta: '给我发邮件', share: '分享这个网页', copied: '链接已复制',
   },
   en: {
-    navHow: 'How it works', navPricing: 'Pricing', signIn: 'Sign in', eyebrow: 'Clarity starts with a better frame',
+    navHow: 'How it works', navPricing: 'Pricing', signIn: 'Sign in', contact: 'Work with me', eyebrow: 'Clarity starts with a better frame',
     titleA: 'See your question', titleB: 'from a sharper angle.', subtitle: "Use Naval Ravikant's publicly shared ideas for a sourced, actionable, independent analysis.",
     label: 'What are you trying to make sense of?', placeholder: 'For example: Should I quit my job to build my product full time?', topics: ['Wealth', 'Startups', 'Life', 'Happiness', 'Decisions'],
     cta: 'Analyze my question', analyzing: 'Finding the right mental models…', free: '1 free analysis available today', credits: (n: number) => `${n} paid analyses remaining`,
@@ -48,15 +53,19 @@ const copy = {
     quote: "It won't make the choice for you. It will help you see the choice clearly.", disclaimer: 'An independent tool with no official affiliation to Naval Ravikant.',
     shortQuestion: 'Please enter at least 10 characters so the question has enough context.', genericError: 'We could not complete the analysis. Please try again shortly.',
     demoNotice: 'Demo mode: this answer uses reviewed public sources and fixed frameworks. Add an AI key to enable personalized model analysis.',
-    perspective: '01 · Perspective', frameworks: '02 · Mental models', applies: '03 · Why this applies', actions: '04 · Three next steps', sources: '05 · Public sources',
-    sourceType: 'Public source', helpful: 'Helpful', notHelpful: 'Not helpful', another: 'Ask another question',
+    perspective: 'Perspective', frameworks: 'Mental models', applies: 'Why this applies', actions: 'Three next steps', sources: 'Public sources',
+    questionLabel: 'Your question', sourceArticle: 'Article', sourceTranscript: 'Public transcript', verifiedSource: 'Reviewed', noSources: 'We did not find enough reviewed public sources to support additional mental models, so this analysis is intentionally restrained.',
+    helpful: 'Helpful', notHelpful: 'Not helpful', another: 'Ask another question',
     pricingEyebrow: 'Simple early pricing', pricingTitle: 'Try it free. Pay only when it helps.', pricingBody: 'Get one complete analysis each day. If you need more, buy a one-time credit pack—no subscription.',
     plan: 'Starter Pack', price: '$9', priceNote: 'One payment · 30 analyses · valid for 12 months', buy: 'Buy 30 analyses',
     paywallTitle: "You've used today's free analysis", paywallBody: 'Get 30 more analyses and keep turning reviewed public ideas into clear, actionable second opinions.',
     close: 'Not now', paymentUnavailable: 'Payments are not configured yet. The flow is ready and will activate as soon as payment credentials are added.',
     howEyebrow: 'Not another generic chatbot', howTitle: 'From a real question to a testable next step.',
-    howSteps: [['Ask honestly', 'Describe the choice or tension you are actually facing.'], ['Match the frame', 'We search only reviewed public material for ideas that fit.'], ['Act clearly', 'Get the rationale, three concrete next steps, and verifiable sources.']],
+    howSteps: [['Ask honestly', 'Describe the choice or tension you are actually facing.'], ['Match the frame', 'We search only reviewed public material; source links are never generated by the model.'], ['Act clearly', 'Get the rationale, three concrete next steps, and verifiable sources.']],
     footerPrivacy: 'Privacy', footerTerms: 'Terms', footerDisclaimer: 'Disclaimer', useful: 'Was this analysis useful?', matching: 'Matching your question to the most relevant public ideas and sources.',
+    directContact: 'Contact me directly', contactEyebrow: 'Turn ideas into useful products', contactTitle: 'A partnership, an idea, or just a conversation?',
+    contactBody: 'If you want to talk about AI products, independent building, content partnerships, or Ask Naval, email me directly. I read every message.',
+    contactCta: 'Email me', share: 'Share this site', copied: 'Link copied',
   },
 } as const;
 
@@ -77,8 +86,13 @@ export default function AskNavalApp({ initialLocale }: { initialLocale: Locale }
   const [paymentMessage, setPaymentMessage] = useState('');
   const [paidCredits, setPaidCredits] = useState(0);
   const [feedback, setFeedback] = useState<'helpful' | 'not_helpful' | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
   const answerRef = useRef<HTMLElement>(null);
   const t = copy[locale];
+  const contactHref = `mailto:${contactEmail}?subject=${encodeURIComponent(locale === 'zh' ? 'Ask Naval 合作与交流' : 'Ask Naval — partnership or feedback')}&body=${encodeURIComponent(locale === 'zh' ? '你好，我从 Ask Naval 网页找到你。\n\n我想和你聊聊：' : 'Hi, I found you through Ask Naval.\n\nI would like to talk about:')}`;
+  const hasFrameworks = Boolean(analysis?.frameworks.length);
+  const sectionNumbers = { perspective: 1, frameworks: 2, applies: hasFrameworks ? 3 : 2, actions: hasFrameworks ? 4 : 3, sources: hasFrameworks ? 5 : 4 };
+  const sectionLabel = (number: number, label: string) => `${String(number).padStart(2, '0')} · ${label}`;
 
   useEffect(() => {
     track('landing_viewed', { locale });
@@ -132,13 +146,22 @@ export default function AskNavalApp({ initialLocale }: { initialLocale: Locale }
     } catch { setPaymentMessage(t.paymentUnavailable); }
   }
 
+  async function shareSite() {
+    track('share_clicked', { locale });
+    const shareData = { title: 'Ask Naval', text: locale === 'zh' ? '用 Naval 的公开思想框架，看清一个现实问题。' : 'See a real question through Naval’s publicly shared ideas.', url: window.location.origin + `/${locale}` };
+    try {
+      if (navigator.share) await navigator.share(shareData);
+      else { await navigator.clipboard.writeText(shareData.url); setShareCopied(true); window.setTimeout(() => setShareCopied(false), 2200); }
+    } catch { /* The user may cancel the native share sheet. */ }
+  }
+
   function resetQuestion() { setAnalysis(null); setQuestion(''); setError(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
   return (
     <main className="site-shell">
       <nav className="nav-wrap" aria-label="Primary navigation">
         <a className="brand" href={`/${locale}`} aria-label="Ask Naval home"><span className="brand-mark">N</span><span>Ask Naval</span></a>
-        <div className="nav-links"><a href="#how">{t.navHow}</a><a href="#pricing">{t.navPricing}</a><a href={`/signin-with-chatgpt?return_to=/${locale}`}>{t.signIn}</a>
+        <div className="nav-links"><a href="#how">{t.navHow}</a><a href="#pricing">{t.navPricing}</a><a href={`/signin-with-chatgpt?return_to=/${locale}`}>{t.signIn}</a><a className="nav-contact" href={contactHref} onClick={() => track('contact_clicked', { placement: 'nav', locale })}>{t.contact}</a>
           <div className="language-switch" aria-label="Language switcher"><button className={locale === 'zh' ? 'active' : ''} onClick={() => changeLocale('zh')} type="button">中</button><span>/</span><button className={locale === 'en' ? 'active' : ''} onClick={() => changeLocale('en')} type="button">EN</button></div>
         </div>
       </nav>
@@ -158,19 +181,21 @@ export default function AskNavalApp({ initialLocale }: { initialLocale: Locale }
       {status === 'loading' && <section className="loading-analysis" aria-live="polite"><span className="loading-mark">N</span><div><strong>{t.analyzing}</strong><p>{t.matching}</p></div></section>}
 
       {analysis && <section className="analysis-section" ref={answerRef}>
-        <header className="analysis-header"><div><p className="eyebrow"><span />{t.topics[topicKeys.indexOf(topic)]}</p><h2>{analysis.title}</h2></div><span className="analysis-badge">{mode === 'live' ? 'AI' : 'DEMO'} · {locale.toUpperCase()}</span></header>
+        <header className="analysis-header"><div><p className="eyebrow"><span />{t.questionLabel} · {t.topics[topicKeys.indexOf(topic)]}</p><p className="question-recap">{question.length > 220 ? `${question.slice(0, 220)}…` : question}</p><h2>{analysis.title}</h2></div><span className="analysis-badge">{mode === 'live' ? 'AI' : 'DEMO'} · {locale.toUpperCase()}</span></header>
         {mode === 'demo' && <p className="demo-notice">{t.demoNotice}</p>}{analysis.safety.reason && <p className="safety-notice">{analysis.safety.reason}</p>}
-        <div className="analysis-grid"><article className="analysis-main"><div className="answer-block"><p className="section-kicker">{t.perspective}</p><p className="lead-answer">{analysis.perspectiveAnalysis}</p></div><div className="answer-block"><p className="section-kicker">{t.frameworks}</p><div className="framework-list">{analysis.frameworks.map((framework) => <div key={framework.name}><h3>{framework.name}</h3><p>{framework.summary}</p></div>)}</div></div><div className="answer-block"><p className="section-kicker">{t.applies}</p><p>{analysis.whyItApplies}</p></div></article>
-          <aside className="analysis-side"><p className="section-kicker">{t.actions}</p><ol className="action-list">{analysis.actions.map((action, index) => <li key={action.title}><span>{index + 1}</span><div><h3>{action.title}</h3><p>{action.detail}</p></div></li>)}</ol></aside></div>
-        <div className="sources-panel"><p className="section-kicker">{t.sources}</p><div>{analysis.sources.map((source, index) => <a href={source.url} target="_blank" rel="noreferrer" key={source.id} onClick={() => track('source_clicked', { source_id: source.id, topic, locale })}><span>0{index + 1}</span><div><strong>{source.title}</strong><small>{t.sourceType} · nav.al</small></div><b>↗</b></a>)}</div></div>
-        <div className="feedback-row"><div><span>{t.useful}</span><button className={feedback === 'helpful' ? 'active' : ''} onClick={() => submitFeedback('helpful')} type="button">↑ {t.helpful}</button><button className={feedback === 'not_helpful' ? 'active' : ''} onClick={() => submitFeedback('not_helpful')} type="button">↓ {t.notHelpful}</button></div><button className="secondary-button" type="button" onClick={resetQuestion}>{t.another} →</button></div>
+        <div className="analysis-grid"><article className="analysis-main"><div className="answer-block"><p className="section-kicker">{sectionLabel(sectionNumbers.perspective, t.perspective)}</p><p className="lead-answer">{analysis.perspectiveAnalysis}</p></div>{hasFrameworks && <div className="answer-block"><p className="section-kicker">{sectionLabel(sectionNumbers.frameworks, t.frameworks)}</p><div className="framework-list">{analysis.frameworks.map((framework) => <div key={framework.name}><h3>{framework.name}</h3><p>{framework.summary}</p></div>)}</div></div>}<div className="answer-block"><p className="section-kicker">{sectionLabel(sectionNumbers.applies, t.applies)}</p><p>{analysis.whyItApplies}</p></div></article>
+          <aside className="analysis-side"><p className="section-kicker">{sectionLabel(sectionNumbers.actions, t.actions)}</p><ol className="action-list">{analysis.actions.map((action, index) => <li key={action.title}><span>{index + 1}</span><div><h3>{action.title}</h3><p>{action.detail}</p></div></li>)}</ol></aside></div>
+        <div className="sources-panel"><p className="section-kicker">{sectionLabel(sectionNumbers.sources, t.sources)}</p>{analysis.sources.length > 0 ? <div>{analysis.sources.map((source, index) => <a href={source.url} target="_blank" rel="noreferrer" key={source.id} onClick={() => track('source_clicked', { source_id: source.id, topic, locale })}><span>0{index + 1}</span><div><strong>{source.title}</strong><small>✓ {t.verifiedSource} · {source.sourceType === 'article' ? t.sourceArticle : t.sourceTranscript} · nav.al</small></div><b>↗</b></a>)}</div> : <p className="sources-empty">{t.noSources}</p>}</div>
+        <div className="feedback-row"><div><span>{t.useful}</span><button className={feedback === 'helpful' ? 'active' : ''} onClick={() => submitFeedback('helpful')} type="button">↑ {t.helpful}</button><button className={feedback === 'not_helpful' ? 'active' : ''} onClick={() => submitFeedback('not_helpful')} type="button">↓ {t.notHelpful}</button></div><div className="feedback-secondary"><a className="contact-inline" href={contactHref} onClick={() => track('contact_clicked', { placement: 'analysis', locale })}>{t.directContact}</a><button className="secondary-button" type="button" onClick={resetQuestion}>{t.another} →</button></div></div>
       </section>}
 
       <section className="how-section" id="how"><p className="eyebrow"><span />{t.howEyebrow}</p><div className="how-heading"><h2>{t.howTitle}</h2><p>{t.disclaimer}</p></div><div className="how-steps">{t.howSteps.map((step, index) => <article key={step[0]}><span>0{index + 1}</span><h3>{step[0]}</h3><p>{step[1]}</p></article>)}</div></section>
 
       <section className="pricing-section" id="pricing"><div><p className="eyebrow"><span />{t.pricingEyebrow}</p><h2>{t.pricingTitle}</h2><p>{t.pricingBody}</p></div><div className="price-card"><span>{t.plan}</span><div><strong>{t.price}</strong><small>USD</small></div><p>{t.priceNote}</p><button onClick={() => { setShowPaywall(true); track('paywall_viewed', { trigger: 'pricing', locale }); }} type="button">{t.buy}<span>↗</span></button></div></section>
 
-      <footer><span>© 2026 Ask Naval</span><span>{t.disclaimer}</span><div><a href={`/${locale}/privacy`}>{t.footerPrivacy}</a><a href={`/${locale}/terms`}>{t.footerTerms}</a><a href={`/${locale}/disclaimer`}>{t.footerDisclaimer}</a></div></footer>
+      <section className="contact-section" id="contact"><div><p className="eyebrow"><span />{t.contactEyebrow}</p><h2>{t.contactTitle}</h2><p>{t.contactBody}</p></div><div className="contact-actions"><a className="contact-email" href={contactHref} onClick={() => track('contact_clicked', { placement: 'contact_card', locale })}><small>{t.contactCta}</small><strong>{contactEmail}</strong><span>↗</span></a><button type="button" onClick={shareSite}><span>{shareCopied ? t.copied : t.share}</span><b>{shareCopied ? '✓' : '↗'}</b></button></div></section>
+
+      <footer><span>© 2026 Ask Naval</span><a className="footer-email" href={contactHref} onClick={() => track('contact_clicked', { placement: 'footer', locale })}>{contactEmail}</a><div><a href={`/${locale}/privacy`}>{t.footerPrivacy}</a><a href={`/${locale}/terms`}>{t.footerTerms}</a><a href={`/${locale}/disclaimer`}>{t.footerDisclaimer}</a></div></footer>
 
       {showPaywall && <div className="modal-backdrop" role="presentation" onMouseDown={() => setShowPaywall(false)}><section className="paywall-modal" role="dialog" aria-modal="true" aria-labelledby="paywall-title" onMouseDown={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowPaywall(false)} type="button" aria-label={t.close}>×</button><span className="paywall-mark">N</span><p className="framework-label">ASK NAVAL · STARTER</p><h2 id="paywall-title">{t.paywallTitle}</h2><p>{t.paywallBody}</p><div className="modal-price"><strong>{t.price}</strong><span>{t.priceNote}</span></div><button className="modal-buy" onClick={startCheckout} type="button">{t.buy}<span>↗</span></button><button className="modal-later" onClick={() => setShowPaywall(false)} type="button">{t.close}</button>{paymentMessage && <p className="payment-message" role="status">{paymentMessage}</p>}<small>{t.disclaimer}</small></section></div>}
     </main>
