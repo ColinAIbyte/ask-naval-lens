@@ -16,7 +16,7 @@ const labels = {
     question: '你提出的问题', core: '先看清：你真正要决定什么', lens: 'Naval 框架下的判断', frameworks: '与这件事最相关的思想框架',
     publishedIdea: '公开思想原意', why: '为什么与你的处境相关', interpretation: '放进你的处境后', limitation: '这个框架不能替你决定什么',
     actions: '把判断变成行动', timeframe: '何时完成', signal: '完成标准', deeper: '沿着这三个问题继续想', sources: '可核验的原始出处',
-    helpful: '有帮助', notHelpful: '没说到点上', useful: '这份分析说到点上了吗？', share: '分享这份分析', copied: '分析链接已复制', another: '再分析一个问题', disclaimer: '独立分析工具，不冒充 Naval Ravikant，与本人无官方关联，也未获得本人背书。',
+    helpful: '有帮助', notHelpful: '没说到点上', useful: '这份分析说到点上了吗？', share: '分享这份分析', copied: '分析链接已复制', another: '再分析一个问题', disclaimer: '本工具独立制作，与 Naval Ravikant 本人无官方关联。',
   },
 } as const;
 
