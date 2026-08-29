@@ -1,4 +1,4 @@
-export type Topic = 'wealth' | 'entrepreneurship' | 'life' | 'happiness' | 'decision_making';
+export type Topic = 'wealth' | 'entrepreneurship' | 'life' | 'happiness' | 'decision_making' | 'other';
 
 export type ApprovedSource = {
   id: string;
@@ -69,5 +69,6 @@ export const approvedSources: ApprovedSource[] = [
 ];
 
 export function sourcesForTopic(topic: Topic): ApprovedSource[] {
+  if (topic === 'other') return approvedSources.slice(0, 4);
   return approvedSources.filter((source) => source.topics.includes(topic)).slice(0, 4);
 }

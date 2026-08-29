@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getChatGPTUser } from '@/app/chatgpt-auth';
 import { createAnalysis, type Locale } from '@/lib/analysis';
 import { database, ensureDatabase } from '@/lib/database';
+import { currentUsagePeriod, FREE_ANALYSES_PER_WEEK } from '@/lib/quota';
 import type { Topic } from '@/lib/sources';
 
-const topics = new Set<Topic>(['wealth', 'entrepreneurship', 'life', 'happiness', 'decision_making']);
+const topics = new Set<Topic>(['wealth', 'entrepreneurship', 'life', 'happiness', 'decision_making', 'other']);
 
 export async function POST(request: NextRequest) {
   let body: { question?: unknown; topic?: unknown; locale?: unknown };
@@ -20,10 +21,12 @@ export async function POST(request: NextRequest) {
   const existingVisitor = request.cookies.get('asknaval_visitor')?.value;
   const visitorId = existingVisitor && /^[a-f0-9-]{36}$/i.test(existingVisitor) ? existingVisitor : crypto.randomUUID();
   const subjectId = user ? `user:${user.userId}` : `anon:${visitorId}`;
-  const usageDate = new Date().toISOString().slice(0, 10);
+  const usageDate = currentUsagePeriod();
   const now = new Date().toISOString();
   let reservation: 'paid' | 'free' = 'free';
   let paidCredits = 0;
+  const usage = await db.prepare('SELECT count FROM daily_usage WHERE subject_id = ? AND usage_date = ?').bind(subjectId, usageDate).first<{ count: number }>();
+  let freeRemaining = Math.max(0, FREE_ANALYSES_PER_WEEK - (usage?.count ?? 0));
 
   if (user) {
     const paid = await db.prepare(`UPDATE credit_balances SET credits = credits - 1, updated_at = ? WHERE user_id = ? AND credits > 0 RETURNING credits`).bind(now, user.userId).first<{ credits: number }>();
@@ -31,8 +34,9 @@ export async function POST(request: NextRequest) {
   }
   if (reservation === 'free') {
     const free = await db.prepare(`INSERT INTO daily_usage(subject_id, usage_date, count) VALUES(?, ?, 1)
-      ON CONFLICT(subject_id, usage_date) DO UPDATE SET count = count + 1 WHERE count < 1 RETURNING count`).bind(subjectId, usageDate).first<{ count: number }>();
-    if (!free) return withVisitorCookie(NextResponse.json({ error: 'quota_exhausted' }, { status: 402 }), visitorId, !existingVisitor);
+      ON CONFLICT(subject_id, usage_date) DO UPDATE SET count = count + 1 WHERE count < ? RETURNING count`).bind(subjectId, usageDate, FREE_ANALYSES_PER_WEEK).first<{ count: number }>();
+    if (!free) return withVisitorCookie(NextResponse.json({ error: 'quota_exhausted', paidCredits, freeRemaining: 0 }, { status: 402 }), visitorId, !existingVisitor);
+    freeRemaining = Math.max(0, FREE_ANALYSES_PER_WEEK - free.count);
   }
 
   const analysisId = crypto.randomUUID();
@@ -44,7 +48,7 @@ export async function POST(request: NextRequest) {
       await db.prepare(`INSERT INTO entitlement_ledger(id, user_id, delta, reason, analysis_id, payment_event_id, idempotency_key, created_at)
         VALUES(?, ?, -1, 'analysis', ?, NULL, ?, ?)`).bind(crypto.randomUUID(), user.userId, analysisId, `analysis:${analysisId}`, now).run();
     }
-    return withVisitorCookie(NextResponse.json({ analysisId, analysis: generated.analysis, mode: generated.mode, paidCredits }), visitorId, !existingVisitor);
+    return withVisitorCookie(NextResponse.json({ analysisId, analysis: generated.analysis, mode: generated.mode, paidCredits, freeRemaining }), visitorId, !existingVisitor);
   } catch (error) {
     if (reservation === 'paid' && user) await db.prepare('UPDATE credit_balances SET credits = credits + 1, updated_at = ? WHERE user_id = ?').bind(new Date().toISOString(), user.userId).run();
     if (reservation === 'free') await db.prepare('UPDATE daily_usage SET count = MAX(count - 1, 0) WHERE subject_id = ? AND usage_date = ?').bind(subjectId, usageDate).run();
