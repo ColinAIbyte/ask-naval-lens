@@ -1,8 +1,14 @@
 [
-  { "id": "entrepreneurship", "topic": "entrepreneurship", "question": "I've been building a side project for eight months. It has 40 users and no revenue. I enjoy building it, but I'm not sure whether continuing is persistence or denial. How should I think about it?" },
-  { "id": "career", "topic": "career", "question": "I've worked at a stable company for five years, but I increasingly want to build my own product. I have a year of runway and a few potential customers, but I'm worried about quitting into a weak economy. How should I think about the decision?" },
-  { "id": "happiness", "topic": "happiness", "question": "I got the promotion I spent years chasing, but I feel more anxious than before. Every achievement seems to create another target. Why doesn't success feel the way I expected?" },
-  { "id": "wealth", "topic": "wealth", "question": "I make a good salary but almost all of my income still depends on my time. I want more freedom, but I don't know whether to invest, start a business, or build an audience." },
-  { "id": "decisions", "topic": "decision_making", "question": "I have two opportunities: one is safe, prestigious and well-paid; the other pays less but lets me work with people I deeply respect on something I care about. How should I compare them?" },
-  { "id": "ambition", "topic": "other", "question": "I constantly compare myself with people who are more successful than me. It motivates me, but it also makes me unhappy. How should I think about ambition without becoming trapped by it?" }
+  { "id": "en-entrepreneurship", "locale": "en", "topic": "entrepreneurship", "question": "I've been building a side project for eight months. It has 40 users and no revenue. I enjoy building it, but I'm not sure whether continuing is persistence or denial. How should I think about it?" },
+  { "id": "en-career", "locale": "en", "topic": "career", "question": "I've worked at a stable company for five years, but I increasingly want to build my own product. I have a year of runway and a few potential customers, but I'm worried about quitting into a weak economy. How should I think about the decision?" },
+  { "id": "en-happiness", "locale": "en", "topic": "happiness", "question": "I got the promotion I spent years chasing, but I feel more anxious than before. Every achievement seems to create another target. Why doesn't success feel the way I expected?" },
+  { "id": "en-wealth", "locale": "en", "topic": "wealth", "question": "I make a good salary but almost all of my income still depends on my time. I want more freedom, but I don't know whether to invest, start a business, or build an audience." },
+  { "id": "en-decisions", "locale": "en", "topic": "decision_making", "question": "I have two opportunities: one is safe, prestigious and well-paid; the other pays less but lets me work with people I deeply respect on something I care about. How should I compare them?" },
+  { "id": "en-ambition", "locale": "en", "topic": "other", "question": "I constantly compare myself with people who are more successful than me. It motivates me, but it also makes me unhappy. How should I think about ambition without becoming trapped by it?" },
+  { "id": "zh-entrepreneurship-no-topic", "locale": "zh", "topic": null, "question": "我做一个副业产品已经八个月，只有 40 个用户、没有收入。我喜欢开发，但分不清继续是坚持，还是不愿意承认方向错了。接下来 30 天我该验证什么？" },
+  { "id": "zh-career", "locale": "zh", "topic": "career", "question": "我在一家稳定公司工作五年，手上有一年的生活费，也找到几个潜在客户。现在辞职做产品，究竟是经过计算的风险，还是因为厌倦工作而产生的冲动？" },
+  { "id": "zh-happiness", "locale": "zh", "topic": "happiness", "question": "我终于拿到追了几年的升职，却比以前更焦虑。每完成一个目标就出现下一个，我该怎样理解野心、成功和幸福的关系？" },
+  { "id": "zh-wealth-no-topic", "locale": "zh", "topic": null, "question": "我的收入不错，但几乎全部依赖投入工作时间。我想获得更多自由，却不知道应该先投资、做一门生意，还是建立自己的内容受众。" },
+  { "id": "zh-decisions", "locale": "zh", "topic": "decision_making", "question": "我有两个工作机会：一个稳定、体面、收入高；另一个工资低一些，却能和我非常尊敬的人做真正关心的事情。我应该用哪些标准比较？" },
+  { "id": "zh-ambition-no-topic", "locale": "zh", "topic": null, "question": "我总忍不住和比自己成功的人比较。比较会推动我努力，也让我越来越不快乐。我怎样才能保留野心，又不被野心困住？" }
 ]

@@ -48,6 +48,6 @@ async function getStoredResult(id: string): Promise<StoredResult | null> {
 }
 
 const topicLabels: Record<'zh' | 'en', Record<string, string>> = {
-  en: { wealth: 'Wealth', career: 'Career', entrepreneurship: 'Entrepreneurship', decision_making: 'Decisions', happiness: 'Happiness', other: 'Other' },
-  zh: { wealth: '财富', career: '职业', entrepreneurship: '创业', decision_making: '决策', happiness: '幸福', other: '其他' },
+  en: { wealth: 'Wealth', career: 'Career', entrepreneurship: 'Entrepreneurship', decision_making: 'Decisions', happiness: 'Happiness', other: 'Other', unspecified: 'General' },
+  zh: { wealth: '财富', career: '职业', entrepreneurship: '创业', decision_making: '决策', happiness: '幸福', other: '其他', unspecified: '综合分析' },
 };

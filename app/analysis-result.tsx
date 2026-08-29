@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { PublicAnalysis } from '@/lib/analysis';
 
 type Locale = 'zh' | 'en';
@@ -13,10 +13,10 @@ const labels = {
     helpful: 'Helpful', notHelpful: 'Not helpful', useful: 'Was this analysis useful?', share: 'Share this analysis', copied: 'Analysis link copied', another: 'Analyze another decision', disclaimer: 'Independent project. Not affiliated with or endorsed by Naval Ravikant.',
   },
   zh: {
-    question: '你的问题', core: '你真正要决定的是什么', lens: 'Naval 思想视角', frameworks: '相关思想框架',
-    publishedIdea: '公开思想', why: '为什么适用于这里', interpretation: '对你处境的分析', limitation: '可能不适用之处',
-    actions: '接下来做什么', timeframe: '时间范围', signal: '成功信号', deeper: '继续深入', sources: '原始出处',
-    helpful: '有帮助', notHelpful: '没帮助', useful: '这份分析有帮助吗？', share: '分享这份分析', copied: '分析链接已复制', another: '分析另一个决定', disclaimer: '独立项目，与 Naval Ravikant 本人无官方关联，也未获得本人背书。',
+    question: '你提出的问题', core: '先看清：你真正要决定什么', lens: 'Naval 框架下的判断', frameworks: '与这件事最相关的思想框架',
+    publishedIdea: '公开思想原意', why: '为什么与你的处境相关', interpretation: '放进你的处境后', limitation: '这个框架不能替你决定什么',
+    actions: '把判断变成行动', timeframe: '何时完成', signal: '完成标准', deeper: '沿着这三个问题继续想', sources: '可核验的原始出处',
+    helpful: '有帮助', notHelpful: '没说到点上', useful: '这份分析说到点上了吗？', share: '分享这份分析', copied: '分析链接已复制', another: '再分析一个问题', disclaimer: '独立分析工具，不冒充 Naval Ravikant，与本人无官方关联，也未获得本人背书。',
   },
 } as const;
 
@@ -43,6 +43,10 @@ export default function AnalysisResult({
   const [feedback, setFeedback] = useState<'helpful' | 'not_helpful' | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
 
+  useEffect(() => {
+    track('analysis_viewed', { locale, analysis_id: analysisId, topic: topicLabel });
+  }, [analysisId, locale, topicLabel]);
+
   async function submitFeedback(value: 'helpful' | 'not_helpful') {
     setFeedback(value);
     track('feedback_submitted', { rating: value, topic: topicLabel, locale, analysis_id: analysisId });
@@ -65,7 +69,7 @@ export default function AnalysisResult({
   function chooseFollowUp(value: string) {
     track('followup_selected', { locale, analysis_id: analysisId });
     if (onFollowUp) onFollowUp(value);
-    else window.location.href = `/${locale}?question=${encodeURIComponent(value)}`;
+    else window.location.assign(`/${locale}?question=${encodeURIComponent(value)}`);
   }
 
   return (
@@ -94,7 +98,7 @@ export default function AnalysisResult({
             <div><strong>{t.interpretation}</strong><p>{framework.analysis}</p></div>
             <div className="framework-limit"><strong>{t.limitation}</strong><p>{framework.limitations}</p></div>
           </div>
-          <div className="framework-sources"><strong>{t.sources}</strong>{framework.sources.map((source) => <a key={source.url} href={source.url} target="_blank" rel="noreferrer">{source.title}<span aria-hidden="true">↗</span></a>)}</div>
+          <div className="framework-sources"><strong>{t.sources}</strong>{framework.sources.map((source) => <a key={source.url} href={source.url} target="_blank" rel="noreferrer" onClick={() => track('source_clicked', { locale, analysis_id: analysisId, source_url: source.url })}>{source.title}<span aria-hidden="true">↗</span></a>)}</div>
         </article>)}
       </div>}
 

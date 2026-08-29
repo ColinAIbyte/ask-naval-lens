@@ -31,7 +31,10 @@ export async function POST(request: NextRequest) {
     checkRateLimit(db, 'analysis_subject_10m', subjectId, 12, 10),
     checkRateLimit(db, 'analysis_ip_10m', ipIdentifier, 30, 10),
   ]);
-  if (!subjectAllowed || !ipAllowed) return withVisitorCookie(NextResponse.json({ error: 'rate_limited' }, { status: 429 }), visitorId, !existingVisitor);
+  if (!subjectAllowed || !ipAllowed) {
+    const error = locale === 'zh' ? '请求有点频繁，请几分钟后再试。' : 'Too many requests. Please wait a few minutes and try again.';
+    return withVisitorCookie(NextResponse.json({ error }, { status: 429 }), visitorId, !existingVisitor);
+  }
 
   const usagePeriod = currentUsagePeriod();
   const [usage, credits] = await Promise.all([
@@ -44,7 +47,8 @@ export async function POST(request: NextRequest) {
     return withVisitorCookie(NextResponse.json({ error: 'quota_exhausted', paidCredits, freeRemaining: 0 }, { status: 402 }), visitorId, !existingVisitor);
   }
   if (!(await hasDailyModelBudget(db))) {
-    return withVisitorCookie(NextResponse.json({ error: 'daily_ai_budget_reached' }, { status: 503 }), visitorId, !existingVisitor);
+    const error = locale === 'zh' ? '今天的 AI 分析额度暂时已满，请明天再来。你的免费次数没有被扣除。' : "Today's AI analysis capacity has been reached. Please try again tomorrow; your quota was not used.";
+    return withVisitorCookie(NextResponse.json({ error }, { status: 503 }), visitorId, !existingVisitor);
   }
 
   const now = new Date().toISOString();
@@ -76,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     await db.prepare(`INSERT INTO analyses(id, subject_id, user_id, locale, topic, question, result_json, mode, model_name, prompt_version, latency_ms, input_tokens, output_tokens, total_tokens, retry_count, created_at)
       VALUES(?, ?, ?, ?, ?, ?, ?, 'live', ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .bind(analysisId, subjectId, user?.userId ?? null, locale, topic ?? 'other', question, JSON.stringify(generated.analysis), generated.model, generated.promptVersion, generated.latencyMs, generated.inputTokens, generated.outputTokens, generated.totalTokens, generated.retryCount, now).run();
+      .bind(analysisId, subjectId, user?.userId ?? null, locale, topic ?? 'unspecified', question, JSON.stringify(generated.analysis), generated.model, generated.promptVersion, generated.latencyMs, generated.inputTokens, generated.outputTokens, generated.totalTokens, generated.retryCount, now).run();
 
     if (reservation === 'paid' && user) {
       await db.prepare(`INSERT INTO entitlement_ledger(id, user_id, delta, reason, analysis_id, payment_event_id, idempotency_key, created_at)

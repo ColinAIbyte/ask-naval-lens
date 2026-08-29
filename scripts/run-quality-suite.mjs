@@ -10,7 +10,7 @@ for (const testCase of cases) {
   const response = await fetch(`${baseUrl}/api/analyze`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', cookie: `asknaval_visitor=${randomUUID()}` },
-    body: JSON.stringify({ question: testCase.question, topic: testCase.topic, locale: 'en' }),
+    body: JSON.stringify({ question: testCase.question, topic: testCase.topic, locale: testCase.locale ?? 'en' }),
   });
   const payload = await response.json();
   const latencyMs = Math.round(performance.now() - started);
@@ -20,6 +20,7 @@ for (const testCase of cases) {
   }
   report.push({
     id: testCase.id,
+    locale: testCase.locale ?? 'en',
     status: response.status,
     latencyMs,
     resultUrl: payload.resultUrl,
