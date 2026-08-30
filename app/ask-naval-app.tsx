@@ -102,6 +102,7 @@ export default function AskNavalApp({ initialLocale, initialQuestion = '', auth 
   const answerRef = useRef<HTMLDivElement>(null);
   const questionRef = useRef<HTMLTextAreaElement>(null);
   const isSubmittingRef = useRef(false);
+  const requestIdRef = useRef('');
   const t = copy[locale];
   const contactEmail = contactEmails[locale];
   const minimumQuestionLength = locale === 'zh' ? 8 : 30;
@@ -125,11 +126,13 @@ export default function AskNavalApp({ initialLocale, initialQuestion = '', auth 
     setStatus('loading'); setAnalysis(null); setResultUrl(null);
     track('analysis_submitted', { topic: selectedTopic ?? 'unspecified', locale });
     try {
-      const response = await fetch('/api/analyze', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question: question.trim(), topic: selectedTopic, locale }) });
+      requestIdRef.current ||= crypto.randomUUID();
+      const response = await fetch('/api/analyze', { method: 'POST', headers: { 'content-type': 'application/json', 'idempotency-key': requestIdRef.current }, body: JSON.stringify({ question: question.trim(), topic: selectedTopic, locale }) });
       const data = await response.json() as { error?: string; analysis?: PublicAnalysis; analysisId?: string; resultUrl?: string; paidCredits?: number; freeRemaining?: number };
-      if (response.status === 402) { setPaidCredits(data.paidCredits ?? 0); setFreeRemaining(0); setPaywallTrigger('quota'); setShowPaywall(true); track('paywall_viewed', { trigger: 'quota_exhausted', locale }); return; }
+      if (response.status === 402) { requestIdRef.current = ''; setPaidCredits(data.paidCredits ?? 0); setFreeRemaining(0); setPaywallTrigger('quota'); setShowPaywall(true); track('paywall_viewed', { trigger: 'quota_exhausted', locale }); return; }
       if (!response.ok) throw new Error(data.error || t.genericError);
       if (!data.analysis || !data.analysisId || !data.resultUrl) throw new Error(t.genericError);
+      requestIdRef.current = '';
       setAnalysis(data.analysis); setAnalysisId(data.analysisId); setResultUrl(data.resultUrl); setPaidCredits(data.paidCredits ?? paidCredits); setFreeRemaining(data.freeRemaining ?? freeRemaining);
       window.history.pushState({}, '', data.resultUrl);
       track('analysis_completed', { topic: selectedTopic ?? 'unspecified', locale });
@@ -156,10 +159,10 @@ export default function AskNavalApp({ initialLocale, initialQuestion = '', auth 
     } catch { setPaymentMessage(t.paymentUnavailable); }
   }
 
-  function resetQuestion() { setAnalysis(null); setAnalysisId(null); setResultUrl(null); setQuestion(''); setTopic(null); setError(''); window.history.pushState({}, '', `/${locale}`); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-  function askFollowUp(value: string) { setAnalysis(null); setAnalysisId(null); setResultUrl(null); setQuestion(value); setTopic(null); setError(''); window.history.pushState({}, '', `/${locale}?question=${encodeURIComponent(value)}`); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  function resetQuestion() { requestIdRef.current = ''; setAnalysis(null); setAnalysisId(null); setResultUrl(null); setQuestion(''); setTopic(null); setError(''); window.history.pushState({}, '', `/${locale}`); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  function askFollowUp(value: string) { requestIdRef.current = ''; setAnalysis(null); setAnalysisId(null); setResultUrl(null); setQuestion(value); setTopic(null); setError(''); window.history.pushState({}, '', `/${locale}?question=${encodeURIComponent(value)}`); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   function chooseExample(value: string, selectedTopic: Topic, index: number) {
-    setQuestion(value); setTopic(selectedTopic); setError('');
+    requestIdRef.current = ''; setQuestion(value); setTopic(selectedTopic); setError('');
     track('example_selected', { example_id: index, locale });
     window.setTimeout(() => { questionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); questionRef.current?.focus({ preventScroll: true }); }, 40);
   }
@@ -175,9 +178,9 @@ export default function AskNavalApp({ initialLocale, initialQuestion = '', auth 
 
       <section id="top" className="hero-grid">
         <div className="hero-copy"><p className="eyebrow"><span />{t.eyebrow}</p><h1>{t.titleA}<br />{locale === 'zh' ? <span className="hero-emphasis">{t.titleB}</span> : <em>{t.titleB}</em>}</h1><p className="subtitle">{t.subtitle}</p><p className="hero-disclaimer">{t.disclaimer}</p>
-          <div className="ask-card"><label htmlFor="question">{t.label}</label><textarea ref={questionRef} id="question" value={question} onChange={(event) => { setQuestion(event.target.value); if (error) setError(''); }} placeholder={t.placeholder} minLength={minimumQuestionLength} maxLength={3000} disabled={status === 'loading'} />
+          <div className="ask-card"><label htmlFor="question">{t.label}</label><textarea ref={questionRef} id="question" value={question} onChange={(event) => { requestIdRef.current = ''; setQuestion(event.target.value); if (error) setError(''); }} placeholder={t.placeholder} minLength={minimumQuestionLength} maxLength={3000} disabled={status === 'loading'} />
             <div className="input-meta"><span>{t.inputGuide}</span><span className={questionLength >= minimumQuestionLength ? 'ready' : ''}>{questionLength}/3000</span></div>
-            <p className="topic-prompt">{t.topicHint}</p><div className="topic-row" role="group" aria-label={t.topicHint}>{topicKeys.map((key, index) => <button aria-pressed={topic === key} className={topic === key ? 'selected' : ''} key={key} onClick={() => setTopic(topic === key ? null : key)} type="button">{t.topics[index]}</button>)}</div>
+            <p className="topic-prompt">{t.topicHint}</p><div className="topic-row" role="group" aria-label={t.topicHint}>{topicKeys.map((key, index) => <button aria-pressed={topic === key} className={topic === key ? 'selected' : ''} key={key} onClick={() => { requestIdRef.current = ''; setTopic(topic === key ? null : key); }} type="button">{t.topics[index]}</button>)}</div>
             <div className="ask-actions"><div className="quota"><span className="quota-dot" /><span>{t.free(freeRemaining)}{paidCredits > 0 ? ` · ${t.credits(paidCredits)}` : ''}</span></div><button className="primary-button" type="button" onClick={analyze} disabled={status === 'loading'}>{status === 'loading' ? t.analyzing : t.cta}<span aria-hidden="true">↗</span></button></div>
           </div>{error && <p className="form-error" role="alert">{error}</p>}<p className="privacy-note">⌁ {t.privacy}</p>
         </div>

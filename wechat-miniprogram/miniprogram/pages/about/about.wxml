@@ -1,0 +1,45 @@
+<view class="page-shell about-page">
+  <view class="brand-row">
+    <view class="brand-mark">N</view>
+    <view>
+      <view class="brand-name">Ask Naval Lens</view>
+      <view class="brand-note">关于、隐私与免责声明</view>
+    </view>
+  </view>
+
+  <view class="about-hero">
+    <view class="eyebrow">ABOUT</view>
+    <view class="about-title">帮助你思考，<text>不替你决定。</text></view>
+    <view class="about-copy">这是一个基于 Naval Ravikant 公开思想框架构建的独立分析工具，不是聊天分身，也不冒充本人。</view>
+  </view>
+
+  <view class="about-card card">
+    <view class="card-number">01</view>
+    <view class="card-title">我们如何生成分析</view>
+    <view class="card-copy">系统先从整理过的 Naval 公开文章中匹配与问题相关的思想，再由 AI 区分公开思想原意与针对你处境的推理。每个框架都会附上可核验的原始出处。</view>
+  </view>
+
+  <view class="about-card card">
+    <view class="card-number">02</view>
+    <view class="card-title">隐私提示</view>
+    <view class="card-copy">请不要输入身份证号、手机号、住址、账户密码、详细病历等敏感个人信息。为了提供额度、生成结果和分享功能，服务会保存匿名设备标识、问题、分析结果及必要的使用记录；问题会加密传输至我们的后端，并由 DeepSeek 模型服务处理。</view>
+    <view class="card-copy">问题与结果计划保留 90 天，并在此后的系统维护中删除，用于结果访问、质量改进与安全审计。若需提前删除，请通过下方邮箱联系我们。</view>
+    <view class="card-copy">分析结果默认使用难以猜测的链接地址。若你主动分享，获得入口的人可以看到你的原问题与完整分析，因此它不应被视为私密存储。</view>
+  </view>
+
+  <view class="about-card card">
+    <view class="card-number">03</view>
+    <view class="card-title">免责声明</view>
+    <view class="card-copy">本工具独立制作，与 Naval Ravikant 本人无官方关联，也不代表、模拟或传达其本人意见。输出仅用于辅助独立思考，不构成医疗、法律、投资或其他专业建议。</view>
+  </view>
+
+  <view class="contact-card">
+    <view class="eyebrow">联系与合作</view>
+    <view class="contact-title">有建议，欢迎直接找到我</view>
+    <view class="contact-copy">中文联系邮箱：{{contactEmail}}</view>
+    <button class="primary-button" bindtap="copyEmail">复制邮箱</button>
+    <button class="secondary-button" bindtap="copyWebsite">复制网页版地址</button>
+  </view>
+
+  <view class="version-note">Ask Naval Lens · 微信小程序 MVP</view>
+</view>

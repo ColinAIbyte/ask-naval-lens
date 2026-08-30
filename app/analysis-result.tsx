@@ -29,6 +29,7 @@ export default function AnalysisResult({
   topicLabel,
   analysisId,
   resultUrl,
+  canFeedback = true,
   onAskAnother,
   onFollowUp,
 }: {
@@ -38,6 +39,7 @@ export default function AnalysisResult({
   topicLabel: string;
   analysisId: string;
   resultUrl: string;
+  canFeedback?: boolean;
   onAskAnother?: () => void;
   onFollowUp?: (question: string) => void;
 }) {
@@ -51,8 +53,9 @@ export default function AnalysisResult({
 
   async function submitFeedback(value: 'helpful' | 'not_helpful') {
     setFeedback(value);
-    track('feedback_submitted', { rating: value, topic: topicLabel, locale, analysis_id: analysisId });
-    void fetch('/api/feedback', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ analysisId, rating: value }) });
+    const response = await fetch('/api/feedback', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ analysisId, rating: value }) }).catch(() => null);
+    if (!response?.ok) setFeedback(null);
+    else track('feedback_submitted', { rating: value, topic: topicLabel, locale, analysis_id: analysisId });
   }
 
   async function shareAnalysis() {
@@ -119,7 +122,7 @@ export default function AnalysisResult({
       </div>}
 
       <div className="feedback-row">
-        <div><span>{t.useful}</span><button className={feedback === 'helpful' ? 'active' : ''} onClick={() => submitFeedback('helpful')} type="button">↑ {t.helpful}</button><button className={feedback === 'not_helpful' ? 'active' : ''} onClick={() => submitFeedback('not_helpful')} type="button">↓ {t.notHelpful}</button></div>
+        {canFeedback && <div><span>{t.useful}</span><button className={feedback === 'helpful' ? 'active' : ''} onClick={() => submitFeedback('helpful')} type="button">↑ {t.helpful}</button><button className={feedback === 'not_helpful' ? 'active' : ''} onClick={() => submitFeedback('not_helpful')} type="button">↓ {t.notHelpful}</button></div>}
         <div className="feedback-secondary"><button className="share-result" type="button" onClick={shareAnalysis}>{shareCopied ? `✓ ${t.copied}` : `↗ ${t.share}`}</button>{onAskAnother ? <button className="secondary-button" type="button" onClick={onAskAnother}>{t.another} →</button> : <a className="secondary-button" href={`/${locale}`}>{t.another} →</a>}</div>
       </div>
       <p className="result-disclaimer">{t.disclaimer}</p>

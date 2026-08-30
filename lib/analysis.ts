@@ -172,6 +172,7 @@ export async function createAnalysis(input: {
   topic: Topic | null;
   locale: Locale;
   safetyIdentifier: string;
+  beforeModelRequest?: () => Promise<boolean> | boolean;
   onModelRequest?: (observation: ModelObservation) => Promise<void> | void;
 }): Promise<GenerationResult> {
   const promptVersion = promptVersions[input.locale];
@@ -202,6 +203,11 @@ export async function createAnalysis(input: {
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     let attemptUsage = emptyUsage();
     try {
+      if (input.beforeModelRequest) {
+        let allowed: boolean;
+        try { allowed = await input.beforeModelRequest(); } catch { throw new ProviderError('MODEL_BUDGET_CHECK_FAILED', 'budget_check_failed', attemptUsage, false); }
+        if (!allowed) throw new ProviderError('DAILY_MODEL_BUDGET_EXHAUSTED', 'daily_budget_exhausted', attemptUsage, false);
+      }
       const requestInput = JSON.stringify({
         responseLanguage: input.locale === 'zh' ? 'Simplified Chinese' : 'English',
         questionContextLevel: isSparseQuestion(input.question, input.locale) ? 'sparse' : 'detailed',
@@ -226,7 +232,7 @@ export async function createAnalysis(input: {
 
       const outputText = payload.output_text ?? payload.output?.flatMap((item) => item.content ?? []).find((item) => item.type === 'output_text')?.text;
       if (!outputText) throw new ProviderError(`${provider.name} returned no structured output`, 'empty_output', usage, true);
-      const parsed = JSON.parse(outputText) as GeneratedAnalysis;
+      const parsed = parseStructuredJson(outputText);
       const normalized = normalizeGeneratedAnalysis(parsed, input.question, input.locale);
       const validated = validateAnalysis(normalized, input.question, selectedSources, input.locale);
 
@@ -259,6 +265,12 @@ type OpenAIResponse = {
 
 class ProviderError extends Error {
   constructor(message: string, readonly code: string, readonly usage: TokenUsage, readonly retryable: boolean) { super(message); }
+}
+
+function parseStructuredJson(outputText: string): GeneratedAnalysis {
+  const trimmed = outputText.trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  return JSON.parse(fenced ? fenced[1] : trimmed) as GeneratedAnalysis;
 }
 
 function resolveProvider(): ModelProvider {

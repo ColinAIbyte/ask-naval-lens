@@ -1,0 +1,128 @@
+<view class="page-shell result-page">
+  <view class="brand-row">
+    <view class="brand-mark">N</view>
+    <view>
+      <view class="brand-name">Ask Naval Lens</view>
+      <view class="brand-note">基于公开思想框架的独立分析</view>
+    </view>
+  </view>
+
+  <view class="state-panel" wx:if="{{loading}}">
+    <view class="state-mark">N</view>
+    <view class="state-title">正在载入分析</view>
+    <view class="state-copy">正在读取问题、思想框架与原始出处…</view>
+  </view>
+
+  <view class="state-panel error-state" wx:elif="{{error}}">
+    <view class="state-mark">!</view>
+    <view class="state-title">暂时看不到这份分析</view>
+    <view class="state-copy">{{error}}</view>
+    <button class="primary-button" bindtap="retryLoad">重新载入</button>
+    <button class="secondary-button" bindtap="askAnother">返回首页</button>
+  </view>
+
+  <block wx:elif="{{analysis}}">
+    <view class="result-intro">
+      <view class="eyebrow">你的问题 · {{topicLabel}}</view>
+      <view class="original-question">{{question}}</view>
+    </view>
+
+    <view class="judgment-card">
+      <view class="section-number">01 · 你真正要决定什么</view>
+      <view class="core-problem">{{analysis.coreProblem}}</view>
+      <view class="context-note" wx:if="{{analysis.contextNote}}">
+        <view class="context-label">分析前提与缺失信息</view>
+        <view>{{analysis.contextNote}}</view>
+      </view>
+      <view class="safety-note" wx:if="{{analysis.safety.reason}}">{{analysis.safety.reason}}</view>
+      <view class="judgment-divider"></view>
+      <view class="section-number light">02 · Naval 框架下的判断</view>
+      <view class="lens-judgment">{{analysis.lensJudgment}}</view>
+    </view>
+
+    <view class="result-section" wx:if="{{analysis.frameworks.length}}">
+      <view class="eyebrow">03 · 相关的 Naval 思想</view>
+      <view class="section-title">哪些框架真的适用</view>
+
+      <view class="framework-card card" wx:for="{{analysis.frameworks}}" wx:key="name" wx:for-item="framework">
+        <view class="framework-head">
+          <text>0{{index + 1}}</text>
+          <view>{{framework.name}}</view>
+        </view>
+        <view class="framework-block">
+          <view class="framework-label">公开思想原意</view>
+          <view class="framework-text">{{framework.summary}}</view>
+        </view>
+        <view class="framework-block">
+          <view class="framework-label">为什么与你的处境相关</view>
+          <view class="framework-text">{{framework.whyRelevant}}</view>
+        </view>
+        <view class="framework-block applied">
+          <view class="framework-label">放进你的处境后</view>
+          <view class="framework-text">{{framework.analysis}}</view>
+        </view>
+        <view class="framework-block limitation">
+          <view class="framework-label">这个框架不能替你决定什么</view>
+          <view class="framework-text">{{framework.limitations}}</view>
+        </view>
+        <view class="source-list" wx:if="{{framework.sources.length}}">
+          <view class="source-label">可核验的原始出处</view>
+          <button
+            wx:for="{{framework.sources}}"
+            wx:key="url"
+            wx:for-item="source"
+            class="source-button"
+            data-url="{{source.url}}"
+            bindtap="copySource"
+          >
+            <view>{{source.title}}</view>
+            <text>复制原文链接</text>
+          </button>
+        </view>
+      </view>
+    </view>
+
+    <view class="result-section actions-section">
+      <view class="eyebrow">04 · 把判断变成行动</view>
+      <view class="section-title">接下来可以验证的 3 步</view>
+      <view class="action-card" wx:for="{{analysis.actions}}" wx:key="timeframe" wx:for-item="action">
+        <view class="action-number">{{index + 1}}</view>
+        <view class="action-content">
+          <view class="action-title">{{action.action}}</view>
+          <view class="action-why">{{action.why}}</view>
+          <view class="action-meta"><view class="action-meta-label">何时完成</view><view>{{action.timeframe}}</view></view>
+          <view class="action-meta"><view class="action-meta-label">建议验证信号</view><view>{{action.successSignal}}</view></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="result-section followup-section" wx:if="{{analysis.followUpQuestions.length}}">
+      <view class="eyebrow">05 · 沿着这些问题继续想</view>
+      <button
+        wx:for="{{analysis.followUpQuestions}}"
+        wx:key="*this"
+        class="followup-button"
+        data-question="{{item}}"
+        bindtap="chooseFollowUp"
+      ><text>{{item}}</text><text class="followup-arrow">→</text></button>
+    </view>
+
+    <view class="feedback-card card" wx:if="{{canFeedback}}">
+      <view class="feedback-title">这份分析说到点上了吗？</view>
+      <view class="feedback-buttons">
+        <button class="feedback-button {{feedback === 'helpful' ? 'active' : ''}}" data-rating="helpful" bindtap="submitFeedback">↑ 有帮助</button>
+        <button class="feedback-button {{feedback === 'not_helpful' ? 'active' : ''}}" data-rating="not_helpful" bindtap="submitFeedback">↓ 没说到点上</button>
+      </view>
+    </view>
+
+    <view class="share-card">
+      <view class="share-title">分享这份完整分析</view>
+      <view class="share-note">分享后，获得入口的人可以看到你的原问题与完整分析。分享卡片不会展示问题摘要。</view>
+      <button wx:if="{{!sharingEnabled}}" class="secondary-button" bindtap="confirmSharing">先确认分享范围</button>
+      <button wx:else class="primary-button" open-type="share">分享给微信好友</button>
+    </view>
+
+    <button class="secondary-button another-button" bindtap="askAnother">再分析一个问题</button>
+    <view class="result-disclaimer">本回答基于 Naval Ravikant 公开思想框架生成，仅作为独立思考辅助，不代表 Naval Ravikant 本人意见。本工具独立制作，与本人无官方关联。</view>
+  </block>
+</view>

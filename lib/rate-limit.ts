@@ -8,13 +8,10 @@ export async function checkRateLimit(db: D1Database, scope: string, identifier: 
   return Boolean(row);
 }
 
-export async function hasDailyModelBudget(db: D1Database): Promise<boolean> {
+export async function reserveDailyModelBudget(db: D1Database): Promise<boolean> {
   const configured = Number.parseInt(process.env.AI_DAILY_REQUEST_LIMIT || process.env.OPENAI_DAILY_REQUEST_LIMIT || '250', 10);
   const limit = Number.isFinite(configured) && configured > 0 ? configured : 250;
-  const start = new Date();
-  start.setUTCHours(0, 0, 0, 0);
-  const row = await db.prepare('SELECT COUNT(*) AS count FROM ai_requests WHERE created_at >= ?').bind(start.toISOString()).first<{ count: number }>();
-  return (row?.count ?? 0) < limit;
+  return checkRateLimit(db, 'model_budget_24h', 'global', limit, 24 * 60);
 }
 
 async function hashIdentifier(value: string): Promise<string> {

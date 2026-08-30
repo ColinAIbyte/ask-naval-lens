@@ -1,0 +1,93 @@
+<view class="page-shell home-page">
+  <view class="brand-row">
+    <view class="brand-mark">N</view>
+    <view>
+      <view class="brand-name">Ask Naval Lens</view>
+      <view class="brand-note">独立思考辅助工具</view>
+    </view>
+  </view>
+
+  <view class="hero">
+    <view class="eyebrow">不是替你决定，而是帮你看清</view>
+    <view class="hero-title">把难做的决定，<text>看清楚</text>，再行动。</view>
+    <view class="hero-copy">输入一个真实问题，我们会从 Naval Ravikant 的公开思想中匹配相关框架，说明适用边界，并给出可验证的下一步。</view>
+    <view class="trust-row">
+      <view>✓ 只用公开内容</view>
+      <view>✓ 附原始出处</view>
+      <view>✓ 不代表本人</view>
+    </view>
+    <view class="disclaimer">独立制作，与 Naval Ravikant 本人无官方关联；不提供医疗、法律或投资等专业结论。</view>
+  </view>
+
+  <view id="question-card" class="card question-card">
+    <view class="question-heading">
+      <view>
+        <view class="eyebrow">你的现实问题</view>
+        <view class="question-title">你现在真正卡在哪里？</view>
+      </view>
+      <view class="quota-pill" wx:if="{{!loadingQuota}}">本周剩余 {{freeRemaining}} 次</view>
+      <view class="quota-pill muted" wx:else>读取额度中</view>
+    </view>
+
+    <textarea
+      class="question-input"
+      value="{{question}}"
+      maxlength="{{maxQuestionLength}}"
+      placeholder="例如：我做副业产品 8 个月，只有 40 个用户且没有收入。工作稳定但占用大部分精力，我该继续兼职验证，还是辞职全职投入？"
+      placeholder-class="question-placeholder"
+      aria-label="请描述你正在面对的现实问题"
+      bindinput="handleInput"
+    />
+    <view class="input-meta"><text>背景越具体，分析越有用</text><text>{{charCount}} / {{maxQuestionLength}}</text></view>
+
+    <view class="topic-heading">选择最接近的主题</view>
+    <view class="topic-grid">
+      <button
+        wx:for="{{topics}}"
+        wx:key="id"
+        class="topic-chip {{topic === item.id ? 'is-active' : ''}}"
+        data-id="{{item.id}}"
+        aria-label="{{item.label}}{{topic === item.id ? '，已选中' : ''}}"
+        bindtap="selectTopic"
+      >
+        <text wx:if="{{topic === item.id}}">✓ </text>{{item.label}}
+      </button>
+    </view>
+
+    <view class="error-panel" wx:if="{{error}}" aria-live="assertive">{{error}}</view>
+    <view class="privacy-consent">
+      <button class="consent-toggle" bindtap="togglePrivacy" aria-label="{{privacyAccepted ? '取消同意隐私说明' : '同意隐私说明'}}">
+        <text>{{privacyAccepted ? '✓' : ''}}</text>
+        <view>我已阅读并同意隐私说明，了解问题会发送至 AI 服务处理。</view>
+      </button>
+      <button class="privacy-link" bindtap="openAbout">查看说明</button>
+    </view>
+    <button class="primary-button analyze-button" disabled="{{loading || loadingQuota}}" bindtap="submitQuestion">
+      <text wx:if="{{loading}}">正在匹配公开思想与出处…</text>
+      <text wx:else>用 Naval 的思想框架分析</text>
+    </button>
+    <view class="loading-note" wx:if="{{loading}}">通常需要几十秒，请不要重复提交或离开当前页面。</view>
+  </view>
+
+  <view class="examples-section">
+    <view class="eyebrow">不知道怎么写？</view>
+    <view class="section-title">从一个具体处境开始</view>
+    <button wx:for="{{examples}}" wx:key="label" class="example-card" data-index="{{index}}" bindtap="useExample">
+      <view><text>0{{index + 1}}</text><text class="example-label">{{item.label}}</text></view>
+      <view class="example-question">{{item.question}}</view>
+      <view class="example-action">使用这个例子 →</view>
+    </button>
+  </view>
+
+  <view class="method-card card">
+    <view class="eyebrow">每份分析都遵守</view>
+    <view class="method-item"><text>01</text><view><view class="method-title">先拆问题</view><view class="method-copy">找出你真正需要做的决定，而不是重复你的焦虑。</view></view></view>
+    <view class="method-item"><text>02</text><view><view class="method-title">再匹配框架</view><view class="method-copy">只引用经过整理的 Naval 公开内容，并标出原始出处。</view></view></view>
+    <view class="method-item"><text>03</text><view><view class="method-title">最后变成行动</view><view class="method-copy">给出今天、7 天内和 30 天内可以验证的下一步。</view></view></view>
+  </view>
+
+  <view class="footer">
+    <button class="footer-link" bindtap="openAbout">关于、隐私与免责声明</button>
+    <view>Ask Naval Lens · 独立项目</view>
+  </view>
+</view>

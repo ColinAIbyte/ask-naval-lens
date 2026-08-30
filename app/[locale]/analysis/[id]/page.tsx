@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import AnalysisResult from '@/app/analysis-result';
+import { getChatGPTUser } from '@/app/chatgpt-auth';
 import type { PublicAnalysis } from '@/lib/analysis';
 import { database, ensureDatabase } from '@/lib/database';
+import { isValidVisitorId, VISITOR_COOKIE } from '@/lib/visitor';
 
 type Params = Promise<{ locale: string; id: string }>;
-type StoredResult = { id: string; locale: 'zh' | 'en'; topic: string; question: string; analysis: PublicAnalysis; createdAt: string };
+type StoredResult = { id: string; subjectId: string; locale: 'zh' | 'en'; topic: string; question: string; analysis: PublicAnalysis; createdAt: string };
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { id } = await params;
@@ -29,21 +32,24 @@ export default async function AnalysisPage({ params }: { params: Params }) {
   if (result.locale !== locale) redirect(`/${result.locale}/analysis/${id}`);
 
   const topicLabel = topicLabels[result.locale][result.topic] ?? topicLabels[result.locale].other;
+  const [user, cookieStore] = await Promise.all([getChatGPTUser(), cookies()]);
+  const visitorId = cookieStore.get(VISITOR_COOKIE)?.value;
+  const viewerSubject = user ? `user:${user.userId}` : isValidVisitorId(visitorId) ? `anon:${visitorId}` : null;
   return <main className="shared-result-page">
     <nav className="nav-wrap" aria-label="Primary navigation"><a className="brand" href={`/${result.locale}`}><span className="brand-mark">N</span><span>Ask Naval Lens</span></a><a className="secondary-button" href={`/${result.locale}`}>{result.locale === 'zh' ? '分析新问题' : 'New analysis'} →</a></nav>
-    <AnalysisResult locale={result.locale} analysis={result.analysis} question={result.question} topicLabel={topicLabel} analysisId={result.id} resultUrl={`/${result.locale}/analysis/${result.id}`} />
+    <AnalysisResult locale={result.locale} analysis={result.analysis} question={result.question} topicLabel={topicLabel} analysisId={result.id} resultUrl={`/${result.locale}/analysis/${result.id}`} canFeedback={viewerSubject === result.subjectId} />
   </main>;
 }
 
 async function getStoredResult(id: string): Promise<StoredResult | null> {
   if (!/^[a-f0-9-]{36}$/i.test(id)) return null;
   await ensureDatabase();
-  const row = await database().prepare('SELECT id, locale, topic, question, result_json, created_at FROM analyses WHERE id = ?').bind(id).first<{
-    id: string; locale: string; topic: string; question: string; result_json: string; created_at: string;
+  const row = await database().prepare('SELECT id, subject_id, locale, topic, question, result_json, created_at FROM analyses WHERE id = ?').bind(id).first<{
+    id: string; subject_id: string; locale: string; topic: string; question: string; result_json: string; created_at: string;
   }>();
   if (!row || (row.locale !== 'zh' && row.locale !== 'en')) return null;
   try {
-    return { id: row.id, locale: row.locale, topic: row.topic, question: row.question, analysis: JSON.parse(row.result_json) as PublicAnalysis, createdAt: row.created_at };
+    return { id: row.id, subjectId: row.subject_id, locale: row.locale, topic: row.topic, question: row.question, analysis: JSON.parse(row.result_json) as PublicAnalysis, createdAt: row.created_at };
   } catch { return null; }
 }
 

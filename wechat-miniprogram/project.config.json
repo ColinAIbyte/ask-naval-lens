@@ -1,0 +1,17 @@
+{
+  "description": "Ask Naval Lens 微信小程序",
+  "miniprogramRoot": "miniprogram/",
+  "compileType": "miniprogram",
+  "appid": "touristappid",
+  "projectname": "ask-naval-lens",
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "urlCheck": true
+  },
+  "packOptions": {
+    "ignore": []
+  }
+}

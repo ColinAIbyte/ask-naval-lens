@@ -13,6 +13,7 @@ This project does not impersonate Naval Ravikant and is not affiliated with or e
 - Shareable analysis pages
 - Optional ChatGPT sign-in for the English experience
 - Basic quota, feedback, and product analytics
+- Native Chinese WeChat Mini Program client
 
 ## Local development
 
@@ -31,6 +32,8 @@ Then open:
 
 - Chinese: `http://localhost:3000/zh`
 - English: `http://localhost:3000/en`
+
+The native WeChat client is in [`wechat-miniprogram`](./wechat-miniprogram). Its own README covers DevTools import, AppID, request-domain, privacy, and release setup.
 
 Set `DEEPSEEK_API_KEY` in `.env.local`. Never commit `.env.local` or an API key.
 

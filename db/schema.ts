@@ -32,6 +32,10 @@ export const aiRequests = sqliteTable('ai_requests', {
   id: text('id').primaryKey(), subjectId: text('subject_id'), modelName: text('model_name').notNull(), latencyMs: integer('latency_ms').notNull(), inputTokens: integer('input_tokens'), outputTokens: integer('output_tokens'), totalTokens: integer('total_tokens'), success: integer('success', { mode: 'boolean' }).notNull(), retryCount: integer('retry_count').notNull().default(0), errorCode: text('error_code'), createdAt: text('created_at').notNull(),
 }, (table) => [index('idx_ai_requests_created').on(table.createdAt)]);
 
+export const analysisRequests = sqliteTable('analysis_requests', {
+  subjectId: text('subject_id').notNull(), requestId: text('request_id').notNull(), requestHash: text('request_hash'), status: text('status').notNull(), analysisId: text('analysis_id'), responseJson: text('response_json'), leaseId: text('lease_id'), leaseExpiresAt: text('lease_expires_at'), reservation: text('reservation'), usagePeriod: text('usage_period'), reservationUserId: text('reservation_user_id'), createdAt: text('created_at').notNull(), updatedAt: text('updated_at').notNull(),
+}, (table) => [primaryKey({ columns: [table.subjectId, table.requestId] }), index('idx_analysis_requests_updated').on(table.updatedAt)]);
+
 export const rateLimits = sqliteTable('rate_limits', {
   scope: text('scope').notNull(), identifierHash: text('identifier_hash').notNull(), windowStart: text('window_start').notNull(), count: integer('count').notNull().default(0),
 }, (table) => [primaryKey({ columns: [table.scope, table.identifierHash, table.windowStart] })]);
