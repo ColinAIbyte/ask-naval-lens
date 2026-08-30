@@ -1,6 +1,7 @@
 import { env } from 'cloudflare:workers';
 
 let initialized = false;
+let initializationPromise: Promise<void> | null = null;
 
 export function database(): D1Database {
   if (!env.DB) throw new Error('D1 database binding is unavailable');
@@ -9,6 +10,17 @@ export function database(): D1Database {
 
 export async function ensureDatabase(): Promise<void> {
   if (initialized) return;
+  const pending = initializationPromise ?? initializeDatabase();
+  initializationPromise = pending;
+  try {
+    await pending;
+    initialized = true;
+  } finally {
+    if (initializationPromise === pending) initializationPromise = null;
+  }
+}
+
+async function initializeDatabase(): Promise<void> {
   const db = database();
   const statements = [
     `CREATE TABLE IF NOT EXISTS analyses (
@@ -100,6 +112,23 @@ export async function ensureDatabase(): Promise<void> {
     )`,
   ];
   await db.batch(statements.map((statement) => db.prepare(statement)));
+  const analysisColumns = await db.prepare('PRAGMA table_info(analyses)').all<{ name: string }>();
+  const existingColumns = new Set((analysisColumns.results ?? []).map((column) => column.name));
+  const compatibilityMigrations = [
+    ['latency_ms', 'ALTER TABLE analyses ADD COLUMN latency_ms INTEGER'],
+    ['input_tokens', 'ALTER TABLE analyses ADD COLUMN input_tokens INTEGER'],
+    ['output_tokens', 'ALTER TABLE analyses ADD COLUMN output_tokens INTEGER'],
+    ['total_tokens', 'ALTER TABLE analyses ADD COLUMN total_tokens INTEGER'],
+    ['retry_count', 'ALTER TABLE analyses ADD COLUMN retry_count INTEGER NOT NULL DEFAULT 0'],
+  ] as const;
+  const pendingMigrations = compatibilityMigrations.filter(([column]) => !existingColumns.has(column));
+  for (const [column, statement] of pendingMigrations) {
+    try {
+      await db.prepare(statement).run();
+    } catch (error) {
+      const refreshed = await db.prepare('PRAGMA table_info(analyses)').all<{ name: string }>();
+      if (!(refreshed.results ?? []).some((item) => item.name === column)) throw error;
+    }
+  }
   await db.prepare('PRAGMA optimize').run();
-  initialized = true;
 }

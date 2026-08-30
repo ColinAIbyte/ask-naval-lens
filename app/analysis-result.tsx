@@ -8,15 +8,17 @@ type Locale = 'zh' | 'en';
 const labels = {
   en: {
     question: 'Your question', core: "What you're really deciding", lens: 'The Naval Lens', frameworks: 'Relevant frameworks',
+    context: 'Assumptions and missing context',
     publishedIdea: 'Published idea', why: 'Why it applies here', interpretation: 'Applied to your situation', limitation: 'Where it may not apply',
-    actions: 'What to do next', timeframe: 'Timeframe', signal: 'Success signal', deeper: 'Go deeper', sources: 'Original source',
-    helpful: 'Helpful', notHelpful: 'Not helpful', useful: 'Was this analysis useful?', share: 'Share this analysis', copied: 'Analysis link copied', another: 'Analyze another decision', disclaimer: 'Independent project. Not affiliated with or endorsed by Naval Ravikant.',
+    actions: 'What to do next', timeframe: 'Timeframe', signal: 'Suggested validation signal', deeper: 'Go deeper', sources: 'Original source',
+    helpful: 'Helpful', notHelpful: 'Not helpful', useful: 'Was this analysis useful?', share: 'Share this analysis', copied: 'Analysis link copied', another: 'Analyze another decision', disclaimer: 'Generated from Naval Ravikant’s published ideas as an independent thinking aid. This is not Naval Ravikant’s advice. Independent project; not affiliated with or endorsed by him.',
   },
   zh: {
     question: '你提出的问题', core: '先看清：你真正要决定什么', lens: 'Naval 框架下的判断', frameworks: '与这件事最相关的思想框架',
+    context: '分析前提与缺失信息',
     publishedIdea: '公开思想原意', why: '为什么与你的处境相关', interpretation: '放进你的处境后', limitation: '这个框架不能替你决定什么',
-    actions: '把判断变成行动', timeframe: '何时完成', signal: '完成标准', deeper: '沿着这三个问题继续想', sources: '可核验的原始出处',
-    helpful: '有帮助', notHelpful: '没说到点上', useful: '这份分析说到点上了吗？', share: '分享这份分析', copied: '分析链接已复制', another: '再分析一个问题', disclaimer: '本工具独立制作，与 Naval Ravikant 本人无官方关联。',
+    actions: '把判断变成行动', timeframe: '何时完成', signal: '建议验证信号', deeper: '沿着这三个问题继续想', sources: '可核验的原始出处',
+    helpful: '有帮助', notHelpful: '没说到点上', useful: '这份分析说到点上了吗？', share: '分享这份分析', copied: '分析链接已复制', another: '再分析一个问题', disclaimer: '本回答基于 Naval Ravikant 公开思想框架生成，仅作为独立思考辅助，不代表 Naval Ravikant 本人意见。本工具独立制作，与本人无官方关联。',
   },
 } as const;
 
@@ -85,6 +87,7 @@ export default function AnalysisResult({
       </header>
 
       {analysis.safety.reason && <p className="safety-notice">{analysis.safety.reason}</p>}
+      {analysis.contextNote && <aside className="analysis-context-note"><strong>{t.context}</strong><p>{analysis.contextNote}</p></aside>}
       <div className="lens-judgment"><p className="section-kicker">02 · {t.lens}</p><p>{analysis.lensJudgment}</p></div>
 
       {analysis.frameworks.length > 0 && <div className="frameworks-v1">

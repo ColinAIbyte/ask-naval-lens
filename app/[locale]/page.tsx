@@ -1,6 +1,13 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import AskNavalApp from '@/app/ask-naval-app';
+import {
+  chatGPTSignInPath,
+  chatGPTSignOutPath,
+  getChatGPTUser,
+} from '@/app/chatgpt-auth';
+
+export const dynamic = 'force-dynamic';
 
 type Params = Promise<{ locale: string }>;
 
@@ -28,5 +35,19 @@ export default async function LocalizedHome({ params, searchParams }: { params: 
   if (locale !== 'zh' && locale !== 'en') notFound();
   const query = (await searchParams).question;
   const initialQuestion = typeof query === 'string' && query.length <= 3000 ? query : '';
-  return <AskNavalApp initialLocale={locale} initialQuestion={initialQuestion} />;
+  const user = await getChatGPTUser();
+
+  return (
+    <AskNavalApp
+      initialLocale={locale}
+      initialQuestion={initialQuestion}
+      auth={{
+        user: user
+          ? { displayName: user.displayName, email: user.email }
+          : null,
+        signInUrl: chatGPTSignInPath(`/${locale}`),
+        signOutUrl: chatGPTSignOutPath(`/${locale}`),
+      }}
+    />
+  );
 }

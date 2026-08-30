@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getChatGPTUser } from '@/app/chatgpt-auth';
-import { createAnalysis, type Locale, type ModelObservation } from '@/lib/analysis';
+import { createAnalysis, isCrisisQuestion, type Locale, type ModelObservation } from '@/lib/analysis';
 import { database, ensureDatabase } from '@/lib/database';
 import { currentUsagePeriod, FREE_ANALYSES_PER_WEEK } from '@/lib/quota';
 import { checkRateLimit, hasDailyModelBudget } from '@/lib/rate-limit';
@@ -10,13 +10,14 @@ const topics = new Set<Topic>(['wealth', 'career', 'entrepreneurship', 'decision
 
 export async function POST(request: NextRequest) {
   let body: { question?: unknown; topic?: unknown; locale?: unknown };
-  try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid request' }, { status: 400 }); }
+  try { body = await request.json(); } catch { return NextResponse.json({ success: false, error: 'Invalid request' }, { status: 400 }); }
 
   const question = typeof body.question === 'string' ? body.question.trim() : '';
   const topic = typeof body.topic === 'string' && topics.has(body.topic as Topic) ? body.topic as Topic : null;
   const locale: Locale | null = body.locale === 'zh' || body.locale === 'en' ? body.locale : null;
-  if (!locale || !isMeaningfulQuestion(question)) {
-    return NextResponse.json({ error: locale === 'zh' ? '请提供至少 30 个字符的具体问题。' : 'Please provide a meaningful question between 30 and 3,000 characters.' }, { status: 400 });
+  const crisis = isCrisisQuestion(question);
+  if (!locale || (!crisis && !isMeaningfulQuestion(question, locale))) {
+    return NextResponse.json({ success: false, error: locale === 'zh' ? '请提供至少 8 个字符的问题；补充真实背景会得到更具体的分析。' : 'Please provide a meaningful question between 30 and 3,000 characters.' }, { status: 400 });
   }
 
   await ensureDatabase();
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
   ]);
   if (!subjectAllowed || !ipAllowed) {
     const error = locale === 'zh' ? '请求有点频繁，请几分钟后再试。' : 'Too many requests. Please wait a few minutes and try again.';
-    return withVisitorCookie(NextResponse.json({ error }, { status: 429 }), visitorId, !existingVisitor);
+    return withVisitorCookie(NextResponse.json({ success: false, error }, { status: 429 }), visitorId, !existingVisitor);
   }
 
   const usagePeriod = currentUsagePeriod();
@@ -43,12 +44,12 @@ export async function POST(request: NextRequest) {
   ]);
   let freeRemaining = Math.max(0, FREE_ANALYSES_PER_WEEK - (usage?.count ?? 0));
   let paidCredits = credits?.credits ?? 0;
-  if (freeRemaining <= 0 && paidCredits <= 0) {
-    return withVisitorCookie(NextResponse.json({ error: 'quota_exhausted', paidCredits, freeRemaining: 0 }, { status: 402 }), visitorId, !existingVisitor);
+  if (!crisis && freeRemaining <= 0 && paidCredits <= 0) {
+    return withVisitorCookie(NextResponse.json({ success: false, error: 'quota_exhausted', paidCredits, freeRemaining: 0 }, { status: 402 }), visitorId, !existingVisitor);
   }
-  if (!(await hasDailyModelBudget(db))) {
+  if (!crisis && !(await hasDailyModelBudget(db))) {
     const error = locale === 'zh' ? '今天的 AI 分析额度暂时已满，请明天再来。你的免费次数没有被扣除。' : "Today's AI analysis capacity has been reached. Please try again tomorrow; your quota was not used.";
-    return withVisitorCookie(NextResponse.json({ error }, { status: 503 }), visitorId, !existingVisitor);
+    return withVisitorCookie(NextResponse.json({ success: false, error }, { status: 503 }), visitorId, !existingVisitor);
   }
 
   const now = new Date().toISOString();
@@ -75,12 +76,12 @@ export async function POST(request: NextRequest) {
           .bind(now, user.userId).first<{ credits: number }>();
         if (paid) { reservation = 'paid'; paidCredits = paid.credits; }
       }
-      if (!reservation) return withVisitorCookie(NextResponse.json({ error: 'quota_exhausted', paidCredits, freeRemaining: 0 }, { status: 402 }), visitorId, !existingVisitor);
+      if (!reservation) return withVisitorCookie(NextResponse.json({ success: false, error: 'quota_exhausted', paidCredits, freeRemaining: 0 }, { status: 402 }), visitorId, !existingVisitor);
     }
 
     await db.prepare(`INSERT INTO analyses(id, subject_id, user_id, locale, topic, question, result_json, mode, model_name, prompt_version, latency_ms, input_tokens, output_tokens, total_tokens, retry_count, created_at)
       VALUES(?, ?, ?, ?, ?, ?, ?, 'live', ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .bind(analysisId, subjectId, user?.userId ?? null, locale, topic ?? 'unspecified', question, JSON.stringify(generated.analysis), generated.model, generated.promptVersion, generated.latencyMs, generated.inputTokens, generated.outputTokens, generated.totalTokens, generated.retryCount, now).run();
+      .bind(analysisId, subjectId, user?.userId ?? null, locale, topic ?? 'unspecified', question, JSON.stringify(generated.analysis), generated.model ?? 'safety-static', generated.promptVersion, generated.latencyMs, generated.inputTokens, generated.outputTokens, generated.totalTokens, generated.retryCount, now).run();
 
     if (reservation === 'paid' && user) {
       await db.prepare(`INSERT INTO entitlement_ledger(id, user_id, delta, reason, analysis_id, payment_event_id, idempotency_key, created_at)
@@ -89,6 +90,7 @@ export async function POST(request: NextRequest) {
     }
 
     return withVisitorCookie(NextResponse.json({
+      success: true,
       analysisId,
       resultUrl: `/${locale}/analysis/${analysisId}`,
       analysis: generated.analysis,
@@ -100,17 +102,20 @@ export async function POST(request: NextRequest) {
     await db.prepare('DELETE FROM analyses WHERE id = ?').bind(analysisId).run().catch(() => undefined);
     const code = error instanceof Error ? error.message : 'ANALYSIS_GENERATION_FAILED';
     console.error('analysis_failed', code);
-    const message = code === 'AI_NOT_CONFIGURED'
-      ? (locale === 'zh' ? 'AI 分析服务尚未配置。' : 'The AI analysis service is not configured yet.')
+    const message = code === 'DEEPSEEK_NOT_CONFIGURED'
+      ? (locale === 'zh' ? '暂时无法完成分析，请稍后再试。' : 'The AI analysis service is not configured yet.')
       : (locale === 'zh' ? '暂时无法完成分析，请稍后重试。' : 'We could not complete the analysis. Your quota was not used. Please try again shortly.');
-    return withVisitorCookie(NextResponse.json({ error: message }, { status: 503 }), visitorId, !existingVisitor);
+    return withVisitorCookie(NextResponse.json({ success: false, error: message }, { status: 503 }), visitorId, !existingVisitor);
   }
 }
 
-function isMeaningfulQuestion(question: string): boolean {
-  if (question.length < 30 || question.length > 3000) return false;
+function isMeaningfulQuestion(question: string, locale: Locale): boolean {
+  const minimumLength = locale === 'zh' ? 8 : 30;
+  if (question.length < minimumLength || question.length > 3000) return false;
   const meaningful = question.match(/[\p{L}\p{N}]/gu) ?? [];
-  return meaningful.length >= 20 && new Set(meaningful.map((char) => char.toLowerCase())).size >= 8;
+  const minimumMeaningful = locale === 'zh' ? 6 : 20;
+  const minimumUnique = locale === 'zh' ? 5 : 8;
+  return meaningful.length >= minimumMeaningful && new Set(meaningful.map((char) => char.toLowerCase())).size >= minimumUnique;
 }
 
 async function recordModelObservation(db: D1Database, subjectId: string, observation: ModelObservation): Promise<void> {

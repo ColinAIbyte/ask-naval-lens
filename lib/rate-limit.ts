@@ -9,7 +9,7 @@ export async function checkRateLimit(db: D1Database, scope: string, identifier: 
 }
 
 export async function hasDailyModelBudget(db: D1Database): Promise<boolean> {
-  const configured = Number.parseInt(process.env.OPENAI_DAILY_REQUEST_LIMIT || '250', 10);
+  const configured = Number.parseInt(process.env.AI_DAILY_REQUEST_LIMIT || process.env.OPENAI_DAILY_REQUEST_LIMIT || '250', 10);
   const limit = Number.isFinite(configured) && configured > 0 ? configured : 250;
   const start = new Date();
   start.setUTCHours(0, 0, 0, 0);
