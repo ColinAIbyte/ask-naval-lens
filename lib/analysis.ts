@@ -53,9 +53,10 @@ type GenerationResult = {
   billable: boolean;
 };
 
-const promptVersions: Record<Locale, string> = { en: 'ask-naval-en-deepseek-v1', zh: 'ask-naval-zh-deepseek-v2' };
+const promptVersions: Record<Locale, string> = { en: 'ask-naval-en-deepseek-v1', zh: 'ask-naval-zh-deepseek-v3' };
 const REQUEST_TIMEOUT_MS = 35_000;
 const MAX_OUTPUT_TOKENS = 2_000;
+const MAX_ANALYSIS_LENGTH: Record<Locale, number> = { zh: 2_400, en: 900 };
 const DEFAULT_DEEPSEEK_MODEL = 'deepseek-v4-flash';
 
 type ModelProvider = {
@@ -320,7 +321,7 @@ function validateAnalysis(value: GeneratedAnalysis, question: string, sources: A
   const actionText = value.actions.map((action) => comparableText(`${action.action} ${action.why} ${action.successSignal}`, locale));
   const situationSpecificActions = actionText.filter((text) => keyTerms.some((term) => text.includes(comparableText(term, locale)))).length;
   if (keyTerms.length >= 3 && situationSpecificActions < 2) throw new Error('Actions are too generic');
-  if (analysisContentLength(value, locale) > (locale === 'zh' ? 1_500 : 780)) throw new Error('Analysis is too long or repetitive');
+  if (analysisContentLength(value, locale) > MAX_ANALYSIS_LENGTH[locale]) throw new Error('Analysis exceeds the maximum length');
   return value;
 }
 
